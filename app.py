@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, render_template, request, redirect
 from werkzeug.utils import secure_filename
+import pandas as pd
 
 
 app = Flask(__name__)
@@ -29,5 +30,23 @@ def upload():
     save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
     uploaded_file.save(save_path)
+    columns = parse_columns(save_path)
 
-    return f"Uploaded {filename} succesffuly"
+    return {
+        "filename": filename,
+        "columns": columns
+    }
+
+def parse_columns(csv_path):
+    '''Helper function to parse column metadata for
+    user to choose target variables and prepare for LLM'''
+    df = pd.read_csv(csv_path)
+    column_metadata = []
+    for column in df.columns:
+        column_metadata.append({
+            "name": column,
+            "dtype": str(df[column].dtype),
+            "missing_values": int(df[column].isna().sum()),
+            "unique_values": int(df[column].nunique())
+        })
+    return column_metadata
