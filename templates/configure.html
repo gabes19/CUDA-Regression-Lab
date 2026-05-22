@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configure Analysis | RegressionLab GPU</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070707;
+      --panel: #101010;
+      --panel-soft: #151515;
+      --field: #0b0b0b;
+      --text: #f4f4f4;
+      --muted: #b7b7b7;
+      --line: #303030;
+      --line-strong: #555555;
+      --shadow: rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        var(--bg);
+      background-size: 40px 40px;
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+    }
+
+    .brand {
+      margin: 0;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 46px 0 34px;
+    }
+
+    .configure-panel {
+      width: min(100%, 1040px);
+      border: 1px solid var(--line);
+      background: rgba(16, 16, 16, 0.94);
+      box-shadow: 0 24px 80px var(--shadow);
+      padding: 34px;
+    }
+
+    .header-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 28px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      max-width: 640px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .file-chip {
+      border: 1px solid var(--line-strong);
+      background: var(--panel-soft);
+      color: var(--text);
+      min-width: 230px;
+      padding: 16px;
+    }
+
+    .file-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .file-chip strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .analysis-form {
+      display: grid;
+      gap: 22px;
+    }
+
+    .field-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    label,
+    legend {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    textarea,
+    select,
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      background: var(--field);
+      color: var(--text);
+      font: 14px "Courier New", Courier, monospace;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 116px;
+      resize: vertical;
+      padding: 14px;
+      line-height: 1.55;
+    }
+
+    select,
+    input[type="number"] {
+      min-height: 44px;
+      padding: 0 12px;
+    }
+
+    textarea:focus,
+    select:focus,
+    input[type="number"]:focus {
+      border-color: var(--text);
+    }
+
+    fieldset {
+      border: 1px solid var(--line);
+      margin: 0;
+      padding: 18px;
+    }
+
+    legend {
+      padding: 0 8px;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .control-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .control-option input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--text);
+      flex: 0 0 auto;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+    }
+
+    .flow {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    a.button,
+    button {
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--text);
+      min-height: 44px;
+      padding: 0 20px;
+      font: 700 14px "Courier New", Courier, monospace;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    a.button {
+      background: transparent;
+      color: var(--text);
+    }
+
+    button:hover {
+      background: transparent;
+      color: var(--text);
+    }
+
+    a.button:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .metadata-panel {
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+    }
+
+    .metadata-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .metadata-header h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    .metadata-header span {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .column-list {
+      display: grid;
+      max-height: 480px;
+      overflow: auto;
+    }
+
+    .column-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+
+    .column-row:last-child {
+      border-bottom: 0;
+    }
+
+    .column-name {
+      color: var(--text);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .column-detail {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .dtype {
+      align-self: start;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      padding: 4px 7px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 860px) {
+      .header-row,
+      .content-grid,
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .file-chip {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 20px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .status {
+        white-space: normal;
+      }
+
+      main {
+        place-items: start;
+        padding-top: 34px;
+      }
+
+      .configure-panel {
+        padding: 24px;
+      }
+
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions,
+      .button-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      a.button,
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar" aria-label="Application header">
+      <h1 class="brand">RegressionLab GPU</h1>
+      <div class="status">CSV regression stability lab</div>
+    </header>
+
+    <main>
+      <section class="configure-panel" aria-labelledby="configure-title">
+        <div class="header-row">
+          <div>
+            <p class="eyebrow">Analysis setup</p>
+            <h2 id="configure-title">Configure Model</h2>
+            <p class="intro">
+              Define the research question and choose the variables for the first
+              regression stability check.
+            </p>
+          </div>
+
+          <div class="file-chip" aria-label="Uploaded file">
+            <span>Uploaded CSV</span>
+            <strong>{{ filename }}</strong>
+          </div>
+        </div>
+
+        <div class="content-grid">
+          <form class="analysis-form" action="/analyze" method="post">
+            <input type="hidden" name="filename" value="{{ filename }}">
+
+            <div class="field-group">
+              <label for="research_question">Research question</label>
+              <textarea
+                id="research_question"
+                name="research_question"
+                placeholder="Does education predict wages after controlling for experience and gender?"
+                required
+              ></textarea>
+              <p class="hint">Write the plain-English question this regression should stress-test.</p>
+            </div>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label for="dependent_variable">Dependent variable</label>
+                <select id="dependent_variable" name="dependent_variable" required>
+                  <option value="">Select column</option>
+                  {% for column in columns %}
+                    <option value="{{ column.name }}">{{ column.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label for="main_independent_variable">Main independent variable</label>
+                <select id="main_independent_variable" name="main_independent_variable" required>
+                  <option value="">Select column</option>
+                  {% for column in columns %}
+                    <option value="{{ column.name }}">{{ column.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <fieldset>
+              <legend>Controls</legend>
+              <p class="hint">Select optional variables to test whether the main relationship is stable.</p>
+
+              <div class="controls-grid">
+                {% for column in columns %}
+                  <label class="control-option">
+                    <input type="checkbox" name="controls" value="{{ column.name }}">
+                    <span>{{ column.name }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </fieldset>
+
+            <div class="field-group">
+              <label for="bootstrap_iterations">Bootstrap iterations</label>
+              <input
+                id="bootstrap_iterations"
+                name="bootstrap_iterations"
+                type="number"
+                min="100"
+                step="100"
+                value="500"
+              >
+              <p class="hint">Start small while developing. Larger bootstrap jobs can move to GPU later.</p>
+            </div>
+
+            <div class="actions">
+              <div class="flow">Upload -&gt; Configure -&gt; Analyze -&gt; Results</div>
+              <div class="button-row">
+                <a class="button" href="/">Upload another CSV</a>
+                <button type="submit">Run Analysis</button>
+              </div>
+            </div>
+          </form>
+
+          <aside class="metadata-panel" aria-labelledby="metadata-title">
+            <div class="metadata-header">
+              <h3 id="metadata-title">Column Metadata</h3>
+              <span>{{ columns|length }} columns</span>
+            </div>
+
+            <div class="column-list">
+              {% for column in columns %}
+                <div class="column-row">
+                  <div>
+                    <div class="column-name">{{ column.name }}</div>
+                    <div class="column-detail">
+                      {{ column.unique_values }} unique values /
+                      {{ column.missing_values }} missing
+                    </div>
+                  </div>
+                  <div class="dtype">{{ column.dtype }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

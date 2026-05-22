@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
 import pandas as pd
 
@@ -29,13 +29,11 @@ def upload():
     filename = secure_filename(uploaded_file.filename)
     save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     uploaded_file.save(save_path)
     columns = parse_columns(save_path)
 
-    return {
-        "filename": filename,
-        "columns": columns
-    }
+    return render_template("configure.html", filename=filename, columns=columns)
 
 def parse_columns(csv_path):
     '''Helper function to parse column metadata for
