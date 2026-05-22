@@ -1,0 +1,68 @@
+Agents.md
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore Visual Studio files
+.vs/
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+ipch/
+*.opensdf
+*.sdf
+*.cache
+*.dbmdl
+
+# Ignore build outputs
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.lib
+*.pdb
+*.idb
+*.log
+
+# Ignore CUDA and CMake build artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/
+*.cu.obj
+*.ptx
+*.cubin
+*.fatbin
+*.linkinfo
+*.tmp
+*.pipe
+*.nvvp
+*.nvprof
+
+# Ignore Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+
+# Ignore package manager files
+node_modules/
+
+# Ignore temporary files
+*.tmp
+*.bak
+*~
+
+# Ignore editor files
+*.swp
+*.swo
+*.idea/
+*.vscode/
