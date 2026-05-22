@@ -1,8 +1,9 @@
 import os
-
+import pandas as pd
+import statsmodels.api as sm
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
-import pandas as pd
+
 
 
 app = Flask(__name__)
@@ -48,3 +49,57 @@ def parse_columns(csv_path):
             "unique_values": int(df[column].nunique())
         })
     return column_metadata
+
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    filename = request.form.get("filename")
+    research_question = request.form.get("research_question")
+    dependent_variable = request.form.get("dependent_variable")
+    main_independent_variable = request.form.get("main_independent_variable")
+    controls = request.form.getlist("controls")
+    bootstrap_iterations = request.form.get("bootstrap_iterations")
+
+    csv_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    df = pd.read_csv(csv_path)
+
+    model_results = fit_models(
+        df = df,
+        dependent_variable = dependent_variable,
+        main_independent_variable= main_independent_variable,
+        controls= controls
+    )
+
+    return {
+        "research_question": research_question,
+        "dependent_variable": dependent_variable,
+        "main_independent_variable": main_independent_variable,
+        "controls": controls,
+        "bootstrap_iterations": bootstrap_iterations,
+        "models": model_results,
+    }
+
+def fit_models(df, dependent_variable, main_independent_variable, controls):
+    '''Helper function to fit multiple models and return results'''
+    y = df[dependent_variable]
+    model_results = []
+    for i in range(len(controls) +1):
+        current_controls = controls[:i]
+        x_columns = [main_independent_variable] + current_controls
+        
+        X = df[x_columns]
+        X = sm.add_constant(X)
+
+        model = sm.OLS(y, X).fit()
+
+        model_results.append({
+            "model_name": f"Model {i+1}",
+            "formula": f"{dependent_variable} ~ " + " + ".join(x_columns),
+            "controls": current_controls,
+            "coefficient": float(model.params[main_independent_variable]),
+            "p_value": float(model.pvalues[main_independent_variable]),
+            "r_squared": float(model.rsquared),
+            "n_observations": int(model.nobs),
+        })
+
+    return model_results
