@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RegressionLab GPU</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070707;
+      --panel: #101010;
+      --panel-soft: #151515;
+      --text: #f4f4f4;
+      --muted: #b7b7b7;
+      --line: #303030;
+      --line-strong: #555555;
+      --shadow: rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        var(--bg);
+      background-size: 40px 40px;
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+    }
+
+    .brand {
+      margin: 0;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 56px 0 34px;
+    }
+
+    .upload-panel {
+      width: min(100%, 720px);
+      border: 1px solid var(--line);
+      background: rgba(16, 16, 16, 0.94);
+      box-shadow: 0 24px 80px var(--shadow);
+      padding: 34px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      max-width: 590px;
+      margin: 18px 0 30px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .upload-form {
+      display: grid;
+      gap: 18px;
+    }
+
+    .drop-zone {
+      display: grid;
+      place-items: center;
+      min-height: 210px;
+      border: 1px dashed var(--line-strong);
+      background: var(--panel-soft);
+      padding: 28px;
+      text-align: center;
+    }
+
+    .upload-mark {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      border: 1px solid var(--line-strong);
+      color: var(--text);
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .drop-zone label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .drop-zone p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    input[type="file"] {
+      width: min(100%, 420px);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    input[type="file"]::file-selector-button {
+      margin-right: 14px;
+      border: 1px solid var(--text);
+      background: transparent;
+      color: var(--text);
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .flow {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    button {
+      border: 1px solid var(--text);
+      background: var(--text);
+      color: var(--bg);
+      min-height: 44px;
+      padding: 0 20px;
+      font: 700 14px "Courier New", Courier, monospace;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: transparent;
+      color: var(--text);
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 20px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .status {
+        white-space: normal;
+      }
+
+      main {
+        place-items: start;
+        padding-top: 34px;
+      }
+
+      .upload-panel {
+        padding: 24px;
+      }
+
+      .drop-zone {
+        min-height: 190px;
+        padding: 22px;
+      }
+
+      .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar" aria-label="Application header">
+      <h1 class="brand">RegressionLab GPU</h1>
+      <div class="status">CSV regression stability lab</div>
+    </header>
+
+    <main>
+      <section class="upload-panel" aria-labelledby="upload-title">
+        <p class="eyebrow">Initial dataset intake</p>
+        <h2 id="upload-title">Upload CSV</h2>
+        <p class="intro">
+          Start a regression stability analysis from your dataset. Choose a clean CSV file,
+          then configure your research question and variables.
+        </p>
+
+        <form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+          <div class="drop-zone">
+            <div>
+              <div class="upload-mark" aria-hidden="true">+</div>
+              <label for="csv_file">Choose CSV file</label>
+              <p>Accepted format: .csv</p>
+              <input id="csv_file" name="csv_file" type="file" accept=".csv" required>
+            </div>
+          </div>
+
+          <div class="actions">
+            <div class="flow">Upload -&gt; Configure -&gt; Analyze -&gt; Results</div>
+            <button type="submit">Upload CSV</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
