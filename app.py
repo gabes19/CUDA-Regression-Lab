@@ -70,14 +70,22 @@ def analyze():
         controls= controls
     )
 
-    return {
-        "research_question": research_question,
-        "dependent_variable": dependent_variable,
-        "main_independent_variable": main_independent_variable,
-        "controls": controls,
-        "bootstrap_iterations": bootstrap_iterations,
-        "models": model_results,
-    }
+    baseline_coefficient = model_results[0]["coefficient"]
+    final_coefficient = model_results[-1]["coefficient"]
+    coefficient_change = final_coefficient - baseline_coefficient
+
+    return render_template(
+        "results.html",
+        research_question=research_question,
+        dependent_variable=dependent_variable,
+        main_independent_variable=main_independent_variable,
+        controls=controls,
+        bootstrap_iterations=bootstrap_iterations,
+        models=model_results,
+        baseline_coefficient=baseline_coefficient,
+        final_coefficient=final_coefficient,
+        coefficient_change=coefficient_change,
+    )
 
 def fit_models(df, dependent_variable, main_independent_variable, controls):
     '''Helper function to fit multiple models and return results'''
