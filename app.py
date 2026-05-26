@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -72,6 +73,14 @@ def analyze():
         controls= controls
     )
 
+    bootstrap_iterations = int(bootstrap_iterations)
+    bootstrap_results = bootstrap_coefficient(
+        df=df,
+        dependent_variable=dependent_variable,
+        main_independent_variable=main_independent_variable,
+        controls=controls,
+        iterations=bootstrap_iterations,
+        )
     baseline_coefficient = model_results[0]["coefficient"]
     final_coefficient = model_results[-1]["coefficient"]
     coefficient_change = final_coefficient - baseline_coefficient
@@ -94,10 +103,11 @@ def analyze():
         coefficient_change=coefficient_change,
         coefficient_chart=coefficient_chart,
         coefficient_plot_html=coefficient_plot_html,
+        bootstrap_results = bootstrap_results
     )
 
 def fit_models(df, dependent_variable, main_independent_variable, controls):
-    '''Helper function to fit multiple models and return results'''
+    '''Fit multiple models and return results'''
     y = df[dependent_variable]
     model_results = []
     for i in range(len(controls) +1):
@@ -122,6 +132,7 @@ def fit_models(df, dependent_variable, main_independent_variable, controls):
     return model_results
 
 def create_coefficient_chart(model_results):
+    '''Create a chart for model coefficient results'''
     coefficient_chart = []
     for model in model_results:
         coefficient_chart.append({
@@ -208,3 +219,32 @@ def create_coefficient_plot(coefficient_chart, main_independent_variable):
             "responsive": True,
         },
     )
+
+def bootstrap_coefficient(df, dependent_variable, main_independent_variable, controls, iterations):
+    '''Bootstrap the main coefficient from the full model'''
+    x_columns = [main_independent_variable] + controls
+    coefficients = []
+    for _ in range(iterations):
+        sample_df = df.sample(
+            n=len(df),
+            replace=True
+        )
+
+        y = sample_df[dependent_variable]
+        X = sample_df[x_columns]
+        X = sm.add_constant(X)
+
+        model = sm.OLS(y, X).fit()
+        coefficients.append(float(model.params[main_independent_variable]))
+
+    coefficients = np.array(coefficients)
+
+    return {
+        "mean": float(np.mean(coefficients)),
+        "standard_error": float(np.std(coefficients, ddof=1)),
+        "ci_95": [
+            float(np.percentile(coefficients, 2.5)),
+            float(np.percentile(coefficients, 97.5)),
+        ],
+        "samples": coefficients.tolist(),
+    }
