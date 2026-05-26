@@ -11,6 +11,7 @@ CUDA Regression Lab is a Python-first, browser-based regression stress-testing t
 - See how the main coefficient changes as controls are added.
 - Review coefficients, p-values, and R-squared.
 - Explore coefficient stability with an interactive Plotly chart.
+- View bootstrap uncertainty and a bootstrap coefficient histogram.
 - Offload expensive bootstrap workloads to CUDA-enabled GPU workers in the cloud
 - Gain AI-generated insights into their regression results
     -Shareable results page

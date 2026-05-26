@@ -89,6 +89,10 @@ def analyze():
         coefficient_chart,
         main_independent_variable
     )
+    bootstrap_histogram_html = create_bootstrap_histogram_plot(
+        bootstrap_results,
+        main_independent_variable
+    )
 
     return render_template(
         "results.html",
@@ -103,7 +107,8 @@ def analyze():
         coefficient_change=coefficient_change,
         coefficient_chart=coefficient_chart,
         coefficient_plot_html=coefficient_plot_html,
-        bootstrap_results = bootstrap_results
+        bootstrap_results=bootstrap_results,
+        bootstrap_histogram_html=bootstrap_histogram_html,
     )
 
 def fit_models(df, dependent_variable, main_independent_variable, controls):
@@ -214,6 +219,105 @@ def create_coefficient_plot(coefficient_chart, main_independent_variable):
         fig,
         full_html=False,
         include_plotlyjs="cdn",
+        config={
+            "displayModeBar": False,
+            "responsive": True,
+        },
+    )
+
+def create_bootstrap_histogram_plot(bootstrap_results, main_independent_variable):
+    '''Create a Plotly histogram for bootstrapped coefficient samples.'''
+    samples = bootstrap_results["samples"]
+    ci_lower, ci_upper = bootstrap_results["ci_95"]
+    mean = bootstrap_results["mean"]
+
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(
+        x=samples,
+        nbinsx=28,
+        marker={
+            "color": "#f4f4f4",
+            "line": {
+                "color": "#0b0b0b",
+                "width": 1,
+            },
+        },
+        opacity=0.88,
+        hovertemplate=(
+            "Coefficient range: %{x}<br>"
+            "Count: %{y}<extra></extra>"
+        ),
+    ))
+
+    fig.add_vline(
+        x=mean,
+        line_color="#f4f4f4",
+        line_width=2,
+        line_dash="solid",
+        annotation_text="mean",
+        annotation_font_color="#f4f4f4",
+    )
+    fig.add_vline(
+        x=ci_lower,
+        line_color="#b7b7b7",
+        line_width=1,
+        line_dash="dash",
+        annotation_text="2.5%",
+        annotation_font_color="#b7b7b7",
+    )
+    fig.add_vline(
+        x=ci_upper,
+        line_color="#b7b7b7",
+        line_width=1,
+        line_dash="dash",
+        annotation_text="97.5%",
+        annotation_font_color="#b7b7b7",
+    )
+
+    fig.update_layout(
+        title=None,
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        plot_bgcolor="#0b0b0b",
+        bargap=0.06,
+        font={
+            "family": "Courier New, monospace",
+            "color": "#f4f4f4",
+        },
+        margin={
+            "l": 54,
+            "r": 24,
+            "t": 24,
+            "b": 52,
+        },
+        height=320,
+        xaxis={
+            "title": f"Bootstrapped {main_independent_variable} coefficient",
+            "gridcolor": "#303030",
+            "linecolor": "#555555",
+            "tickfont": {"color": "#b7b7b7"},
+            "zeroline": False,
+        },
+        yaxis={
+            "title": "Count",
+            "gridcolor": "#303030",
+            "linecolor": "#555555",
+            "tickfont": {"color": "#b7b7b7"},
+            "zeroline": False,
+        },
+        hoverlabel={
+            "bgcolor": "#151515",
+            "bordercolor": "#555555",
+            "font": {
+                "family": "Courier New, monospace",
+                "color": "#f4f4f4",
+            },
+        },
+    )
+
+    return pio.to_html(
+        fig,
+        full_html=False,
+        include_plotlyjs=False,
         config={
             "displayModeBar": False,
             "responsive": True,
