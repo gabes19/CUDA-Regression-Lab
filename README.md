@@ -21,3 +21,5 @@ The goal is to help students, research assistants, and researchers quickly answe
 > Is this regression relationship stable, fragile, or misleading?
 
 Expensive bootstrap workloads can be offloaded to CUDA-enabled GPU workers through RunPod Serverless.
+
+<img width="1895" height="925" alt="image" src="https://github.com/user-attachments/assets/6d2217cc-6133-4235-8bda-320765635b51" />
