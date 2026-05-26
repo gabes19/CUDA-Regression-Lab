@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import plotly.graph_objects as go
+import plotly.io as pio
 import statsmodels.api as sm
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
@@ -74,6 +76,10 @@ def analyze():
     final_coefficient = model_results[-1]["coefficient"]
     coefficient_change = final_coefficient - baseline_coefficient
     coefficient_chart = create_coefficient_chart(model_results)
+    coefficient_plot_html = create_coefficient_plot(
+        coefficient_chart,
+        main_independent_variable
+    )
 
     return render_template(
         "results.html",
@@ -86,7 +92,8 @@ def analyze():
         baseline_coefficient=baseline_coefficient,
         final_coefficient=final_coefficient,
         coefficient_change=coefficient_change,
-        coefficient_chart = coefficient_chart
+        coefficient_chart=coefficient_chart,
+        coefficient_plot_html=coefficient_plot_html,
     )
 
 def fit_models(df, dependent_variable, main_independent_variable, controls):
@@ -122,3 +129,82 @@ def create_coefficient_chart(model_results):
             "coefficient": model["coefficient"],
         })
     return coefficient_chart
+
+def create_coefficient_plot(coefficient_chart, main_independent_variable):
+    '''Create a Plotly line chart for coefficient stability across models.'''
+    model_names = [point["model_name"] for point in coefficient_chart]
+    coefficients = [point["coefficient"] for point in coefficient_chart]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=model_names,
+        y=coefficients,
+        mode="lines+markers",
+        line={
+            "color": "#f4f4f4",
+            "width": 2,
+        },
+        marker={
+            "color": "#070707",
+            "line": {
+                "color": "#f4f4f4",
+                "width": 2,
+            },
+            "size": 9,
+        },
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            f"{main_independent_variable} coefficient: "
+            "%{y:.4f}<extra></extra>"
+        ),
+    ))
+
+    fig.update_layout(
+        title=None,
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        plot_bgcolor="#0b0b0b",
+        font={
+            "family": "Courier New, monospace",
+            "color": "#f4f4f4",
+        },
+        margin={
+            "l": 54,
+            "r": 24,
+            "t": 24,
+            "b": 46,
+        },
+        height=320,
+        xaxis={
+            "title": None,
+            "gridcolor": "#303030",
+            "linecolor": "#555555",
+            "tickfont": {"color": "#b7b7b7"},
+            "zeroline": False,
+        },
+        yaxis={
+            "title": f"{main_independent_variable} coefficient",
+            "gridcolor": "#303030",
+            "linecolor": "#555555",
+            "tickfont": {"color": "#b7b7b7"},
+            "zeroline": True,
+            "zerolinecolor": "#555555",
+        },
+        hoverlabel={
+            "bgcolor": "#151515",
+            "bordercolor": "#555555",
+            "font": {
+                "family": "Courier New, monospace",
+                "color": "#f4f4f4",
+            },
+        },
+    )
+
+    return pio.to_html(
+        fig,
+        full_html=False,
+        include_plotlyjs="cdn",
+        config={
+            "displayModeBar": False,
+            "responsive": True,
+        },
+    )

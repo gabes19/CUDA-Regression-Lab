@@ -185,6 +185,19 @@
       line-height: 1.3;
     }
 
+    .plot-panel {
+      border: 1px solid var(--line);
+      background: var(--field);
+      margin-bottom: 28px;
+      padding: 10px;
+    }
+
+    .plot-panel .js-plotly-plot,
+    .plot-panel .plotly,
+    .plot-panel .plot-container {
+      width: 100% !important;
+    }
+
     .table-wrap {
       border: 1px solid var(--line);
       overflow-x: auto;
@@ -409,7 +422,12 @@
         </div>
 
         <div class="content-grid">
-          <section aria-labelledby="model-table-title">
+          <section aria-labelledby="stability-chart-title">
+            <h3 class="section-title" id="stability-chart-title">Coefficient Stability</h3>
+            <div class="plot-panel">
+              {{ coefficient_plot_html|safe }}
+            </div>
+
             <h3 class="section-title" id="model-table-title">Model Progression</h3>
             <div class="table-wrap">
               <table>
