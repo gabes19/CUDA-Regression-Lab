@@ -73,6 +73,7 @@ def analyze():
     baseline_coefficient = model_results[0]["coefficient"]
     final_coefficient = model_results[-1]["coefficient"]
     coefficient_change = final_coefficient - baseline_coefficient
+    coefficient_chart = create_coefficient_chart(model_results)
 
     return render_template(
         "results.html",
@@ -85,6 +86,7 @@ def analyze():
         baseline_coefficient=baseline_coefficient,
         final_coefficient=final_coefficient,
         coefficient_change=coefficient_change,
+        coefficient_chart = coefficient_chart
     )
 
 def fit_models(df, dependent_variable, main_independent_variable, controls):
@@ -111,3 +113,12 @@ def fit_models(df, dependent_variable, main_independent_variable, controls):
         })
 
     return model_results
+
+def create_coefficient_chart(model_results):
+    coefficient_chart = []
+    for model in model_results:
+        coefficient_chart.append({
+            "model_name": model["model_name"],
+            "coefficient": model["coefficient"],
+        })
+    return coefficient_chart
