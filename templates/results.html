@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Results | RegressionLab GPU</title>
+  <title>Results | CUDA Regression Lab</title>
   <style>
     :root {
       color-scheme: dark;
@@ -382,7 +382,7 @@
 <body>
   <div class="page">
     <header class="topbar" aria-label="Application header">
-      <h1 class="brand">RegressionLab GPU</h1>
+      <h1 class="brand">CUDA Regression Lab</h1>
       <div class="status">CSV regression stability lab</div>
     </header>
 
@@ -473,6 +473,28 @@
                 <div class="stability-value">{{ "%+.3f"|format(coefficient_change) }}</div>
               </div>
             </section>
+
+            {% if bootstrap_results is defined %}
+              <section class="stability-panel">
+                <h3 class="section-title">Bootstrap Uncertainty</h3>
+                <div class="stability-row">
+                  <div class="stability-label">Mean coefficient</div>
+                  <div class="stability-value">{{ "%.3f"|format(bootstrap_results.mean) }}</div>
+                </div>
+                <div class="stability-row">
+                  <div class="stability-label">Standard error</div>
+                  <div class="stability-value">{{ "%.3f"|format(bootstrap_results.standard_error) }}</div>
+                </div>
+                <div class="stability-row">
+                  <div class="stability-label">95% interval</div>
+                  <div class="stability-value">
+                    {{ "%.3f"|format(bootstrap_results.ci_95[0]) }}
+                    to
+                    {{ "%.3f"|format(bootstrap_results.ci_95[1]) }}
+                  </div>
+                </div>
+              </section>
+            {% endif %}
 
             <section class="note-panel">
               <h3 class="section-title">Interpretation Note</h3>
