@@ -98,6 +98,18 @@ def analyze():
         bootstrap_results,
         main_independent_variable
     )
+    llm_payload = build_llm_summary_payload(
+    research_question=research_question,
+    dependent_variable=dependent_variable,
+    main_independent_variable=main_independent_variable,
+    controls=controls,
+    model_results=model_results,
+    bootstrap_results=bootstrap_results,
+    bootstrap_iterations=bootstrap_iterations,
+    baseline_coefficient=baseline_coefficient,
+    final_coefficient=final_coefficient,
+    coefficient_change=coefficient_change,
+)
 
     return render_template(
         "results.html",
@@ -357,3 +369,37 @@ def bootstrap_coefficient(df, dependent_variable, main_independent_variable, con
         ],
         "samples": coefficients.tolist(),
     }
+
+def build_llm_summary_payload(
+        research_question,
+        dependent_variable,
+        main_independent_variable,
+        controls,
+        model_results,
+        bootstrap_results,
+        bootstrap_iterations,
+        baseline_coefficient,
+        final_coefficient,
+        coefficient_change,
+):
+     return {
+        "research_question": research_question,
+        "dependent_variable": dependent_variable,
+        "main_independent_variable": main_independent_variable,
+        "controls": controls,
+        "model_progression": model_results,
+        "coefficient_summary": {
+            "baseline_coefficient": baseline_coefficient,
+            "final_coefficient": final_coefficient,
+            "coefficient_change": coefficient_change,
+        },
+        "bootstrap": {
+            "iterations": bootstrap_iterations,
+            "mean": bootstrap_results["mean"],
+            "standard_error": bootstrap_results["standard_error"],
+            "ci_95": bootstrap_results["ci_95"],
+        },
+        "diagnostics_warnings": [],
+    }
+
+
