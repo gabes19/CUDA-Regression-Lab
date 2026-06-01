@@ -6,7 +6,12 @@ import plotly.io as pio
 import statsmodels.api as sm
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+from openai import OpenAI
 
+load_dotenv()
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
+openai_client = OpenAI()
 
 
 app = Flask(__name__)
