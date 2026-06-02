@@ -407,6 +407,7 @@ def build_llm_summary_payload(
 def generate_llm_summary(llm_payload):
     response = openai_client.responses.create(
         model=OPENAI_MODEL,
+        temperature = 0.2,
         input=[
             {
                 "role":"system",
@@ -419,10 +420,11 @@ def generate_llm_summary(llm_payload):
             {
                 "role": "user",
                 "content": (
-                    "Summarize these regression results. Include: main finding, robustness,"
-                    "bootstrap uncertainty, diagnostics or warnings, suggested next checks, "
-                    "and a plain-English answer. Always include this caveat: "
-                    "'Reminder: This is not causal proof.'\n\n"
+                    "Summarize these regression results in 4 concise bullet points. "
+                    "Be objective, plain-English, and avoid speculation. "
+                    "Each bullet must be one sentence. "
+                    "Do not include long explanations, caveats beyond the required causal caveat, or methodological background. "
+                    "Include only: main finding, robustness after controls, bootstrap uncertainty, and next check. "
                     f"{llm_payload}"
                 ), 
             },
