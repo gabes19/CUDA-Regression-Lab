@@ -129,7 +129,15 @@ def analyze():
     final_coefficient=final_coefficient,
     coefficient_change=coefficient_change,
 )
-    llm_summary = generate_llm_summary(llm_payload=llm_payload)
+    try:
+        llm_summary = generate_llm_summary(llm_payload=llm_payload)
+    except Exception as error:
+        print(f"LLM summary failed: {error}")
+        llm_summary = (
+            "LLM summary unavailable. Review the coefficient table, coefficient stability chart, "
+            "and bootstrap interval directly. This is an associational regression analysis, "
+            "not causal proof."
+        )
 
     return render_template(
         "results.html",
