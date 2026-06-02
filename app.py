@@ -407,7 +407,9 @@ def build_llm_summary_payload(
 def generate_llm_summary(llm_payload):
     response = openai_client.responses.create(
         model=OPENAI_MODEL,
-        temperature = 0.2,
+        text={
+            "verbosity":"low"
+        },
         input=[
             {
                 "role":"system",
