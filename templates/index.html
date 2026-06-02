@@ -194,6 +194,59 @@
       color: var(--text);
     }
 
+    .sample-data {
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      margin-top: 24px;
+      padding-top: 22px;
+    }
+
+    .sample-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .sample-box {
+      display: inline-grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      width: fit-content;
+      max-width: 100%;
+      border: 1px solid var(--line-strong);
+      background: var(--panel-soft);
+      color: var(--text);
+      padding: 12px 14px;
+      text-decoration: none;
+    }
+
+    .sample-box:hover {
+      border-color: var(--text);
+      background: var(--field);
+    }
+
+    .data-icon {
+      display: grid;
+      grid-template-columns: repeat(3, 5px);
+      gap: 3px;
+      border: 1px solid var(--line-strong);
+      padding: 5px;
+    }
+
+    .data-icon span {
+      width: 5px;
+      height: 5px;
+      background: var(--text);
+    }
+
+    .sample-name {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
     @media (max-width: 640px) {
       .page {
         padding: 20px;
@@ -237,7 +290,6 @@
   <div class="page">
     <header class="topbar" aria-label="Application header">
       <h1 class="brand">CUDA Regression Lab</h1>
-      <div class="status">CSV regression stability lab</div>
     </header>
 
     <main>
@@ -264,6 +316,24 @@
             <button type="submit">Upload CSV</button>
           </div>
         </form>
+
+        <div class="sample-data" aria-label="Sample dataset">
+          <div class="sample-label">Sample data:</div>
+          <a class="sample-box" href="/sample/wage-education">
+            <span class="data-icon" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span class="sample-name">wage_education_sample.csv</span>
+          </a>
+        </div>
       </section>
     </main>
   </div>

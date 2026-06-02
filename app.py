@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 import statsmodels.api as sm
-from flask import Flask, render_template, request
+from flask import Flask, abort, render_template, request
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -18,6 +18,7 @@ app = Flask(__name__)
 
 #Upload folder for local dev
 UPLOAD_FOLDER = "uploads"
+SAMPLE_DATASET_FILENAME = "wage_education_sample.csv"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 @app.route("/")
@@ -43,6 +44,24 @@ def upload():
     columns = parse_columns(save_path)
 
     return render_template("configure.html", filename=filename, columns=columns)
+
+@app.route("/sample/wage-education")
+def sample_wage_education():
+    '''Load the bundled wage/education sample dataset.'''
+    sample_path = os.path.join(
+        app.config["UPLOAD_FOLDER"],
+        SAMPLE_DATASET_FILENAME
+    )
+
+    if not os.path.exists(sample_path):
+        abort(404, description="Sample dataset not found")
+
+    columns = parse_columns(sample_path)
+    return render_template(
+        "configure.html",
+        filename=SAMPLE_DATASET_FILENAME,
+        columns=columns
+    )
 
 def parse_columns(csv_path):
     '''Helper function to parse column metadata for
@@ -434,4 +453,3 @@ def generate_llm_summary(llm_payload):
     )
 
     return response.output_text
-
