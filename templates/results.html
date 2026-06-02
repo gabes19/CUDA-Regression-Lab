@@ -502,11 +502,9 @@
             {% endif %}
 
             <section class="note-panel">
-              <h3 class="section-title">Interpretation Note</h3>
+              <h3 class="section-title">LLM Research Summary</h3>
               <p>
-                The coefficient shows how the estimated relationship changes as controls are added.
-                A large shift suggests the baseline relationship may be sensitive to model specification.
-                This is an associational regression analysis, not causal proof.
+                {{ llm_summary or "No LLM summary was generated for this analysis. This is an associational regression analysis, not causal proof." }}
               </p>
             </section>
           </aside>

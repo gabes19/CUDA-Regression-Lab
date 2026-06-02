@@ -110,6 +110,7 @@ def analyze():
     final_coefficient=final_coefficient,
     coefficient_change=coefficient_change,
 )
+    llm_summary = generate_llm_summary(llm_payload=llm_payload)
 
     return render_template(
         "results.html",
@@ -126,6 +127,7 @@ def analyze():
         coefficient_plot_html=coefficient_plot_html,
         bootstrap_results=bootstrap_results,
         bootstrap_histogram_html=bootstrap_histogram_html,
+        llm_summary = llm_summary
     )
 
 def fit_models(df, dependent_variable, main_independent_variable, controls):
@@ -402,4 +404,30 @@ def build_llm_summary_payload(
         "diagnostics_warnings": [],
     }
 
+def generate_llm_summary(llm_payload):
+    response = openai_client.responses.create(
+        model=OPENAI_MODEL,
+        input=[
+            {
+                "role":"system",
+                "content":(
+                    "You summarize regression analysis results for students and researchers."
+                    "Use only the structured results provided. Do not invent diagnostics, causality, "
+                    "or facts about the raw dataset."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Summarize these regression results. Include: main finding, robustness,"
+                    "bootstrap uncertainty, diagnostics or warnings, suggested next checks, "
+                    "and a plain-English answer. Always include this caveat: "
+                    "'Reminder: This is not causal proof.'\n\n"
+                    f"{llm_payload}"
+                ), 
+            },
+        ],
+    )
+
+    return response.output_text
 
