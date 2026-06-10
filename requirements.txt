@@ -5,3 +5,4 @@ statsmodels
 numpy
 openai
 python-dotenv
+matplotlib

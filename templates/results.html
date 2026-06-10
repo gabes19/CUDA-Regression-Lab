@@ -302,6 +302,12 @@
       padding-top: 22px;
     }
 
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .flow {
       color: var(--muted);
       font-size: 13px;
@@ -369,6 +375,11 @@
       }
 
       .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button-row {
         align-items: stretch;
         flex-direction: column;
       }
@@ -511,7 +522,13 @@
 
         <div class="actions">
           <div class="flow">Upload -&gt; Configure -&gt; Analyze -&gt; Results</div>
-          <a class="button" href="/">Start New Analysis</a>
+          <div class="button-row">
+            {% if export_token is defined %}
+              <a class="button" href="/export/pdf/{{ export_token }}">Export PDF</a>
+              <a class="button" href="/export/latex/{{ export_token }}">Export LaTeX</a>
+            {% endif %}
+            <a class="button" href="/">Start New Analysis</a>
+          </div>
         </div>
       </section>
     </main>
