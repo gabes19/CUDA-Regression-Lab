@@ -8,6 +8,9 @@ from flask import Flask, abort, render_template, request
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from openai import OpenAI
+import json
+import uuid
+from datetime import datetime
 
 load_dotenv()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
@@ -15,6 +18,10 @@ openai_client = OpenAI()
 
 
 app = Flask(__name__)
+
+#Storing Results
+RESULTS_FOLDER = "results"
+app.config["RESULTS_FOLDER"] = RESULTS_FOLDER
 
 #Upload folder for local dev
 UPLOAD_FOLDER = "uploads"
@@ -461,3 +468,15 @@ def generate_llm_summary(llm_payload):
     )
 
     return response.output_text
+
+def save_analysis_result(result_payload):
+    os.makedirs(app.config["RESULTS_FOLDER"], exist_ok=True)
+    analysis_id = str(uuid.uuid4())
+    result_payload["analysis_id"] = analysis_id
+    result_payload["created_at"] = datetime.utcnow().isoformat()
+    result_path = os.path.join(app.config["RESULTS_FOLDER"],
+                               f"{analysis_id}".json)
+    with open(result_path, "w", encoding="utf-8") as file:
+        json.dump(result_payload, file, indent=2)
+
+    return analysis_id
