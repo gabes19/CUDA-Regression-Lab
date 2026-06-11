@@ -14,12 +14,13 @@ CUDA Regression Lab is a Python-first, browser-based regression stress-testing t
 - View bootstrap uncertainty and a bootstrap coefficient histogram.
 - Offload expensive bootstrap workloads to CUDA-enabled GPU workers in the cloud
 - Gain AI-generated insights into their regression results
-    -Shareable results page
-    -Exportable HTML/PDF/LaTeX Report
+-Exportable PDF/LaTeX Report
 
 The goal is to help students, research assistants, and researchers quickly answer:
 
 > Is this regression relationship stable, fragile, or misleading?
+
+> How can I interpret the control variables in my model?
 
 Expensive bootstrap workloads can be offloaded to CUDA-enabled GPU workers through RunPod Serverless.
 
