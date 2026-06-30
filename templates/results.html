@@ -207,7 +207,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 760px;
+      min-width: 1220px;
     }
 
     th,
@@ -450,9 +450,16 @@
                   <tr>
                     <th>Model</th>
                     <th>Formula</th>
-                    <th>Coefficient</th>
-                    <th>P-value</th>
-                    <th>R-squared</th>
+                    <th>Coef.</th>
+                    <th>Std. Err.</th>
+                    <th>T</th>
+                    <th>P</th>
+                    <th>95% CI</th>
+                    <th>R-sq</th>
+                    <th>Adj. R-sq</th>
+                    <th>RMSE</th>
+                    <th>F</th>
+                    <th>F P</th>
                     <th>N</th>
                   </tr>
                 </thead>
@@ -461,9 +468,18 @@
                     <tr>
                       <td>{{ model.model_name }}</td>
                       <td class="formula">{{ model.formula }}</td>
-                      <td class="number">{{ "%.4f"|format(model.coefficient) }}</td>
-                      <td class="number">{{ "%.3g"|format(model.p_value) }}</td>
-                      <td class="number">{{ "%.4f"|format(model.r_squared) }}</td>
+                      <td class="number">{{ model.coefficient|metric(4) }}</td>
+                      <td class="number">{{ model.standard_error|metric(4) }}</td>
+                      <td class="number">{{ model.t_value|metric(3) }}</td>
+                      <td class="number">{{ model.p_value|metric(4) }}</td>
+                      <td class="number">
+                        {{ model.ci_95[0]|metric(3) }} to {{ model.ci_95[1]|metric(3) }}
+                      </td>
+                      <td class="number">{{ model.r_squared|metric(4) }}</td>
+                      <td class="number">{{ model.adjusted_r_squared|metric(4) }}</td>
+                      <td class="number">{{ model.rmse|metric(3) }}</td>
+                      <td class="number">{{ model.f_statistic|metric(3) }}</td>
+                      <td class="number">{{ model.f_p_value|metric(4) }}</td>
                       <td class="number">{{ model.n_observations }}</td>
                     </tr>
                   {% endfor %}

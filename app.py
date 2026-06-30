@@ -27,6 +27,26 @@ openai_client = OpenAI()
 
 app = Flask(__name__)
 
+def clean_metric(value):
+    '''Return JSON/template-friendly floats for model metrics.'''
+    try:
+        metric = float(value)
+    except (TypeError, ValueError):
+        return None
+
+    if not np.isfinite(metric):
+        return None
+
+    return metric
+
+@app.template_filter("metric")
+def format_metric(value, digits=3):
+    metric = clean_metric(value)
+    if metric is None:
+        return "n/a"
+
+    return f"{metric:.{digits}f}"
+
 #Report export folder for local dev
 REPORTS_FOLDER = "reports"
 app.config["REPORTS_FOLDER"] = REPORTS_FOLDER
@@ -200,15 +220,28 @@ def fit_models(df, dependent_variable, main_independent_variable, controls):
         X = sm.add_constant(X)
 
         model = sm.OLS(y, X).fit()
+        coefficient_interval = model.conf_int().loc[main_independent_variable]
 
         model_results.append({
             "model_name": f"Model {i+1}",
             "formula": f"{dependent_variable} ~ " + " + ".join(x_columns),
             "controls": current_controls,
-            "coefficient": float(model.params[main_independent_variable]),
-            "p_value": float(model.pvalues[main_independent_variable]),
-            "r_squared": float(model.rsquared),
+            "coefficient": clean_metric(model.params[main_independent_variable]),
+            "standard_error": clean_metric(model.bse[main_independent_variable]),
+            "t_value": clean_metric(model.tvalues[main_independent_variable]),
+            "p_value": clean_metric(model.pvalues[main_independent_variable]),
+            "ci_95": [
+                clean_metric(coefficient_interval[0]),
+                clean_metric(coefficient_interval[1]),
+            ],
+            "r_squared": clean_metric(model.rsquared),
+            "adjusted_r_squared": clean_metric(model.rsquared_adj),
+            "rmse": clean_metric(np.sqrt(model.mse_resid)),
+            "f_statistic": clean_metric(model.fvalue),
+            "f_p_value": clean_metric(model.f_pvalue),
             "n_observations": int(model.nobs),
+            "df_residual": clean_metric(model.df_resid),
+            "condition_number": clean_metric(model.condition_number),
         })
 
     return model_results
@@ -593,10 +626,11 @@ def latex_escape(value):
     return "".join(replacements.get(character, character) for character in text)
 
 def format_number(value, digits=3):
-    try:
-        return f"{float(value):.{digits}f}"
-    except (TypeError, ValueError):
-        return str(value)
+    metric = clean_metric(value)
+    if metric is None:
+        return "n/a"
+
+    return f"{metric:.{digits}f}"
 
 def latex_summary(summary):
     lines = [line.strip() for line in str(summary or "").splitlines()]
@@ -658,14 +692,24 @@ def build_latex_document(payload):
 
     model_rows = []
     for model in payload["models"]:
+        ci_lower, ci_upper = model.get("ci_95") or [None, None]
+        ci_text = f"{format_number(ci_lower, 3)} to {format_number(ci_upper, 3)}"
+
         model_rows.append(
             " & ".join([
-                latex_escape(model["model_name"]),
-                latex_escape(model["formula"]),
-                format_number(model["coefficient"], 4),
-                format_number(model["p_value"], 4),
-                format_number(model["r_squared"], 4),
-                str(model["n_observations"]),
+                latex_escape(model.get("model_name")),
+                latex_escape(model.get("formula")),
+                format_number(model.get("coefficient"), 4),
+                format_number(model.get("standard_error"), 4),
+                format_number(model.get("t_value"), 3),
+                format_number(model.get("p_value"), 4),
+                latex_escape(ci_text),
+                format_number(model.get("r_squared"), 4),
+                format_number(model.get("adjusted_r_squared"), 4),
+                format_number(model.get("rmse"), 3),
+                format_number(model.get("f_statistic"), 3),
+                format_number(model.get("f_p_value"), 4),
+                str(model.get("n_observations", "n/a")),
             ]) + r" \\"
         )
 
@@ -718,14 +762,16 @@ def build_latex_document(payload):
 \end{{figure}}
 
 \section*{{Model Progression}}
-\small
-\begin{{tabular}}{{p{{0.13\linewidth}} p{{0.36\linewidth}} r r r r}}
+\scriptsize
+\resizebox{{\linewidth}}{{!}}{{%
+\begin{{tabular}}{{llrrrrlrrrrrr}}
 \hline
-Model & Formula & Coef. & P-value & R$^2$ & N \\
+Model & Formula & Coef. & SE & T & P & 95\% CI & R-sq & Adj. R-sq & RMSE & F & F P & N \\
 \hline
 {model_table}
 \hline
 \end{{tabular}}
+}}
 \normalsize
 
 \section*{{LLM Research Summary}}
