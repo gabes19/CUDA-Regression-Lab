@@ -53,7 +53,10 @@ __pycache__/
 *.pyo
 *.pyd
 .env
-.venv/
+/.venv/
+/.venv*/
+venv/
+env/
 
 # Ignore package manager files
 node_modules/
