@@ -46,31 +46,55 @@ def _load_numeric_gpu_frame(csv_path, required_columns):
     return df
 
 def _build_design_matrices(df, dependent_variable, x_columns):
-     y = df[dependent_variable].astype("float64").to_cupy()
-     X = df[x_columns].astype("float64").to_cupy()
+    y = df[dependent_variable].astype("float64").to_cupy()
+    X = df[x_columns].astype("float64").to_cupy()
 
-     n_rows = X.shape[0]
-     intercept = cp.ones((n_rows, 1), dtype=cp.float64)
-     X = cp.column_stack([intercept, X])
+    n_rows = X.shape[0]
+    intercept = cp.ones((n_rows, 1), dtype=cp.float64)
+    X = cp.column_stack([intercept, X])
 
-     return X, y
+    return X, y
 
 def _fit_ols_gpu(X,y):
-     '''Fit model using Moore-Penrose pseudoinverse of X 
-     (generalization of the inverse matrix with 
-     Singular Value Decomposition (SVD))'''
-     #pseudo inverse of X
-     x_pinv = cp.linalg.pinv(X)
-     #matmul computes estimated coefficients
-     beta = x_pinv @ y
-     #matmul computes predicted y vals
-     fitted_values = X @ beta
-     #computes errors
-     residuals = y -fitted_values
-     return {
-          "beta": beta,
-          "fitted_values": fitted_values,
-          "residuals": residuals
-     }
+    '''Fit model using Moore-Penrose pseudoinverse of X 
+    (generalization of the inverse matrix with 
+    Singular Value Decomposition (SVD))'''
+    #pseudo inverse of X
+    x_pinv = cp.linalg.pinv(X)
+    #matmul computes estimated coefficients
+    beta = x_pinv @ y
+    #matmul computes predicted y vals
+    fitted_values = X @ beta
+    #computes errors
+    residuals = y -fitted_values
+    n_observations = X.shape[0]
+    n_parameters = X.shape[1]
+    #residual degrees of freedom
+    df_residual = n_observations - n_parameters
+    #sum of squared errors
+    sse = cp.sum(residuals ** 2)
+    #total sum of squares
+    tss = cp.sum((y - cp.mean(y)) ** 2)
+    #r^2 - how much variation is explained by model
+    r_squared = 1 - (sse / tss)
+    #residual mean squared error - used to compute standard error
+    mse_resid = sse / df_residual
+    #root mean squared error - puts error in original y units
+    rmse = cp.sqrt(mse_resid)
+
+
+
+    return {
+        "beta": beta,
+        "fitted_values": fitted_values,
+        "residuals": residuals,
+        "sse": sse,
+        "tss": tss,
+        "r_squared": r_squared,
+        "mse_resid": mse_resid,
+        "rmse": rmse,
+        "n_observations": n_observations,
+        "df_residual": df_residual,
+    }
 
 
