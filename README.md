@@ -1,6 +1,6 @@
 # CUDA Regression Lab
 
-CUDA Regression Lab is a Python-first, browser-based regression regression analysis and stress-testing tool for students and researchers. Users upload a dataset, define a research question, choose a dependent variable, choose a main independent variable, add controls, and view regression stability results in a clean interactive dashboard.
+CUDA Regression Lab is a Python-first, browser-based regression regression analysis and stress-testing tool for students and researchers. Users upload a dataset, define a research question, choose a dependent variable, choose a main independent variable, add controls, and view regression results explained in a clean, AI-assisted, interactive dashboard.
 
 ## What Users Can Do
 
