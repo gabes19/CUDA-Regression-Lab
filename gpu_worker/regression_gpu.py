@@ -21,12 +21,15 @@ def run_gpu_analysis(
         dependent_variable=dependent_variable,
         x_columns=x_columns,
         )
+    ols_result = _fit_ols_gpu(X, y)
     #TODO: Temporarily returning something simple. Expand after cupy math
     return {
          "row_count": len(df),
          "columns": required_columns,
          "x_shape": X.shape,
-         "y_shape": y.shape
+         "y_shape": y.shape,
+         "intercept": float(ols_result["beta"][0].get()),
+         "coefficient": float(ols_result["beta"][1].get())
     }
     
 #TODO: add support for cpu/gpu categorical variables later
@@ -43,7 +46,7 @@ def _load_numeric_gpu_frame(csv_path, required_columns):
     return df
 
 def _build_design_matrices(df, dependent_variable, x_columns):
-     y = df[dependent_variable].astype("float").to_cupy()
+     y = df[dependent_variable].astype("float64").to_cupy()
      X = df[x_columns].astype("float64").to_cupy()
 
      n_rows = X.shape[0]
@@ -52,6 +55,23 @@ def _build_design_matrices(df, dependent_variable, x_columns):
 
      return X, y
 
+def _fit_ols_gpu(X,y):
+     '''Fit model using Moore-Penrose pseudoinverse of X 
+     (generalization of the inverse matrix with 
+     Singular Value Decomposition (SVD))'''
+     #pseudo inverse of X
+     x_pinv = cp.linalg.pinv(X)
+     #matmul computes estimated coefficients
+     beta = x_pinv @ y
+     #matmul computes predicted y vals
+     fitted_values = X @ beta
+     #computes errors
+     residuals = y -fitted_values
+     return {
+          "beta": beta,
+          "fitted_values": fitted_values,
+          "residuals": residuals
+     }
 
 
 def _fit_ols_gpu(X, y):
