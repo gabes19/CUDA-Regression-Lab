@@ -24,12 +24,22 @@ def run_gpu_analysis(
     ols_result = _fit_ols_gpu(X, y)
     #TODO: Temporarily returning something simple. Expand after cupy math
     return {
-         "row_count": len(df),
-         "columns": required_columns,
-         "x_shape": X.shape,
-         "y_shape": y.shape,
-         "intercept": float(ols_result["beta"][0].get()),
-         "coefficient": float(ols_result["beta"][1].get())
+        "row_count": len(df),
+        "columns": required_columns,
+        "x_shape": X.shape,
+        "y_shape": y.shape,
+        "intercept": float(ols_result["beta"][0].get()),
+        "coefficient": float(ols_result["beta"][1].get()),
+        "standard_error": float(ols_result["standard_errors"][1].get()),
+        "t_value": float(ols_result["t_values"][1].get()),
+        "p_value": float(ols_result["p_values"][1]),
+        "ci_95": [
+            float(ols_result["ci_lower"][1]),
+            float(ols_result["ci_upper"][1]),
+        ],
+        "r_squared": float(ols_result["r_squared"].get()),
+        "rmse": float(ols_result["rmse"].get()),
+        "df_residual": int(ols_result["df_residual"]),
     }
     
 #TODO: add support for cpu/gpu categorical variables later
@@ -55,7 +65,7 @@ def _build_design_matrices(df, dependent_variable, x_columns):
 
     return X, y
 
-def _fit_ols_gpu(X,y):
+def _fit_ols_gpu(X, y):
     '''Fit model using Moore-Penrose pseudoinverse of X 
     (generalization of the inverse matrix with 
     Singular Value Decomposition (SVD))'''
@@ -81,6 +91,25 @@ def _fit_ols_gpu(X,y):
     mse_resid = sse / df_residual
     #root mean squared error - puts error in original y units
     rmse = cp.sqrt(mse_resid)
+    #inverse-like matrix for predictor relationships
+    #used to calculate beta variance/covariance
+    xtx_inv = cp.linalg.pinv(X.T @ X)
+    #var/covar matrix for coeffs
+    cov_beta = mse_resid * xtx_inv
+    #uncertainty for each coeff
+    standard_errors = cp.sqrt(cp.diag(cov_beta))
+    #coeffs t-statistics
+    t_values = beta / standard_errors
+    #stat arrays are small -> can use prebuilt scipy
+    t_values_cpu = cp.asnumpy(t_values)
+    standard_errors_cpu = cp.asnumpy(standard_errors)
+    beta_cpu = cp.asnumpy(beta)
+    #computes two-sided p values for each coeff
+    p_values = 2 * stats.t.sf(abs(t_values_cpu), df_residual)
+    #cutoff value for a 95% confidence interval
+    t_critical = stats.t.ppf(0.975, df_residual)
+    ci_lower = beta_cpu - (t_critical * standard_errors_cpu)
+    ci_upper = beta_cpu + (t_critical * standard_errors_cpu)
 
 
 
@@ -93,6 +122,11 @@ def _fit_ols_gpu(X,y):
         "r_squared": r_squared,
         "mse_resid": mse_resid,
         "rmse": rmse,
+        "standard_errors": standard_errors,
+        "t_values": t_values,
+        "p_values": p_values,
+        "ci_lower": ci_lower,
+        "ci_upper": ci_upper,
         "n_observations": n_observations,
         "df_residual": df_residual,
     }
