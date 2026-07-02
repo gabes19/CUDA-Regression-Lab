@@ -74,7 +74,3 @@ def _fit_ols_gpu(X,y):
      }
 
 
-def _fit_ols_gpu(X, y):
-    pass
-
-
