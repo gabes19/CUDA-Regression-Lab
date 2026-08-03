@@ -98,6 +98,28 @@ def sample_wage_education():
         columns=columns
     )
 
+#Define maximum amount of categories for one-hot encoding
+MAX_AUTO_CATEGORIES = 25
+
+def is_categorical_series(series: pd.Series) -> bool:
+    '''Helper function that checks if a series is categorical
+    for later encoding'''
+    dtype = series.dtype
+    return (
+        isinstance(dtype, pd.CategoricalDtype)
+        or pd.api.types.is_object_dtype(dtype)
+        or pd.api.types.is_string_dtype(dtype)
+        or pd.api.types.s_bool_dtype(dtype)
+    )
+
+def get_category_levels(series: pd.Series -> list):
+    '''Helper function that returns a list of category labels sorted by frequency desc'''
+    counts = series.dropna().type(str).value_counts()
+    return sorted(
+        counts.index.tolist(), 
+        key= lambda level: (-int(counts[level]), level.casefold()),
+    )
+
 def parse_columns(csv_path):
     '''Helper function to parse column metadata for
     user to choose target variables and prepare for LLM'''
