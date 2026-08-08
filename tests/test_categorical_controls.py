@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from regressionlab.services.bootstrap_cpu import bootstrap_coefficient
 from regressionlab.services.regression import fit_models
 from regressionlab.services.data_processing import prepare_analysis_data
 
@@ -86,6 +87,33 @@ def test_wage_regression_accepts_gender_control():
     assert len(results) == 3
     assert results[-1]["controls"] == ["experience", "gender"]
     assert math.isfinite(results[-1]["coefficient"])
+
+
+def test_bootstrap_accepts_gender_control():
+    df = pd.read_csv(SAMPLE_CSV)
+
+    prepared = prepare_analysis_data(
+        df=df,
+        dependent_variable="wage",
+        main_independent_variable="education",
+        controls=["experience", "gender"],
+    )
+
+    result = bootstrap_coefficient(
+        data=prepared,
+        main_independent_variable="education",
+        iterations=25,
+        random_seed=42,
+    )
+
+    assert len(result["samples"]) == 25
+    assert math.isfinite(result["mean"])
+    assert math.isfinite(result["standard_error"])
+    assert all(
+        math.isfinite(value)
+        for value in result["ci_95"]
+    )
+
 
 def test_prepare_analysis_data_encodes_categorical_control():
     df = pd.DataFrame({

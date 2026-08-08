@@ -1,25 +1,55 @@
-#Handles non-intensive bootstrapping jobs
-import statsmodels.api as sm
+# Handles non-intensive bootstrapping jobs.
 import numpy as np
+import statsmodels.api as sm
 
-def bootstrap_coefficient(df, dependent_variable, main_independent_variable, controls, iterations):
-    '''Bootstrap the main coefficient from the full model'''
-    x_columns = [main_independent_variable] + controls
-    coefficients = []
-    for _ in range(iterations):
-        sample_df = df.sample(
-            n=len(df),
-            replace=True
+from .data_processing import PreparedAnalysisData
+
+
+def bootstrap_coefficient(
+    data: PreparedAnalysisData,
+    main_independent_variable: str,
+    iterations: int,
+    random_seed: int | None = None,
+):
+    """Bootstrap the main coefficient from prepared model data."""
+
+    if iterations < 2:
+        raise ValueError("Bootstrap iterations must be at least 2.")
+
+    observation_count = len(data.y)
+
+    if observation_count < 2:
+        raise ValueError(
+            "At least two complete observations are required."
         )
 
-        y = sample_df[dependent_variable]
-        X = sample_df[x_columns]
-        X = sm.add_constant(X)
+    if main_independent_variable not in data.X.columns:
+        raise ValueError(
+            f"Main independent variable '{main_independent_variable}' "
+            "is missing from the prepared predictors."
+        )
 
-        model = sm.OLS(y, X).fit()
-        coefficients.append(float(model.params[main_independent_variable]))
+    random_generator = np.random.default_rng(random_seed)
+    coefficients = np.empty(iterations, dtype=float)
 
-    coefficients = np.array(coefficients)
+    for iteration in range(iterations):
+        sample_positions = random_generator.integers(
+            low=0,
+            high=observation_count,
+            size=observation_count,
+        )
+
+        sample_y = data.y.iloc[sample_positions].reset_index(drop=True)
+        sample_X = data.X.iloc[sample_positions].reset_index(drop=True)
+        sample_X = sm.add_constant(sample_X, has_constant="add")
+
+        model = sm.OLS(sample_y, sample_X).fit()
+        coefficients[iteration] = float(
+            model.params[main_independent_variable]
+        )
+
+    if not np.all(np.isfinite(coefficients)):
+        raise ValueError("Bootstrap generated non-finite coefficients.")
 
     return {
         "mean": float(np.mean(coefficients)),
