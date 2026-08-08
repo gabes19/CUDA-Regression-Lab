@@ -12,7 +12,10 @@ from regressionlab.services.regression import(
     clean_metric,
     fit_models
 )
-from regressionlab.services.data_processing import parse_columns
+from regressionlab.services.data_processing import (
+    parse_columns,
+    prepare_analysis_data,
+)
 from regressionlab.services.bootstrap_cpu import bootstrap_coefficient
 from regressionlab.services.llm_handler import (
     build_llm_summary_payload,
@@ -99,21 +102,26 @@ def analyze():
     csv_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     df = pd.read_csv(csv_path)
 
-    model_results = fit_models(
-        df = df,
-        dependent_variable = dependent_variable,
-        main_independent_variable= main_independent_variable,
-        controls= controls
-    )
-
-    bootstrap_iterations = int(bootstrap_iterations)
-    bootstrap_results = bootstrap_coefficient(
+    prepared_data = prepare_analysis_data(
         df=df,
         dependent_variable=dependent_variable,
         main_independent_variable=main_independent_variable,
         controls=controls,
+    )
+
+    model_results = fit_models(
+        data=prepared_data,
+        dependent_variable=dependent_variable,
+        main_independent_variable=main_independent_variable,
+        controls=controls,
+    )
+
+    bootstrap_iterations = int(bootstrap_iterations)
+    bootstrap_results = bootstrap_coefficient(
+        data=prepared_data,
+        main_independent_variable=main_independent_variable,
         iterations=bootstrap_iterations,
-        )
+    )
     baseline_coefficient = model_results[0]["coefficient"]
     final_coefficient = model_results[-1]["coefficient"]
     coefficient_change = final_coefficient - baseline_coefficient
