@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from regressionlab.services.regression import fit_models
+from regressionlab.services.data_processing import prepare_analysis_data
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -46,8 +47,15 @@ def test_regression_accepts_different_categorical_controls(category_values):
         }
     )
 
-    results = fit_models(
+    prepared = prepare_analysis_data(
         df=df,
+        dependent_variable="outcome",
+        main_independent_variable="main_predictor",
+        controls=["category"],
+    )
+
+    results = fit_models(
+        data=prepared,
         dependent_variable="outcome",
         main_independent_variable="main_predictor",
         controls=["category"],
@@ -61,8 +69,15 @@ def test_regression_accepts_different_categorical_controls(category_values):
 def test_wage_regression_accepts_gender_control():
     df = pd.read_csv(SAMPLE_CSV)
 
-    results = fit_models(
+    prepared = prepare_analysis_data(
         df=df,
+        dependent_variable="wage",
+        main_independent_variable="education",
+        controls=["experience", "gender"],
+    )
+
+    results = fit_models(
+        data=prepared,
         dependent_variable="wage",
         main_independent_variable="education",
         controls=["experience", "gender"],
@@ -71,3 +86,27 @@ def test_wage_regression_accepts_gender_control():
     assert len(results) == 3
     assert results[-1]["controls"] == ["experience", "gender"]
     assert math.isfinite(results[-1]["coefficient"])
+
+def test_prepare_analysis_data_encodes_categorical_control():
+    df = pd.DataFrame({
+        "outcome": [12, 15, 17, 22],
+        "main_predictor": [1, 2, 3, 4],
+        "group": ["A", "B", "A", "B"],
+    })
+
+    prepared = prepare_analysis_data(
+        df=df,
+        dependent_variable="outcome",
+        main_independent_variable="main_predictor",
+        controls=["group"],
+    )
+
+    assert prepared.y.dtype == float
+    assert prepared.X.columns.tolist() == [
+        "main_predictor",
+        "group_B",
+    ]
+    assert prepared.term_map == {
+        "main_predictor": ["main_predictor"],
+        "group": ["group_B"],
+    }

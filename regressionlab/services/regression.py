@@ -1,6 +1,7 @@
 #This service handles model fitting
 import numpy as np
 import statsmodels.api as sm
+from .data_processing import PreparedAnalysisData
 
 def clean_metric(value):
     '''Return JSON/template-friendly floats for model metrics.'''
@@ -14,40 +15,77 @@ def clean_metric(value):
 
     return metric
 
-def fit_models(df, dependent_variable, main_independent_variable, controls):
-    '''Fit multiple models and return results'''
-    y = df[dependent_variable]
+def fit_models(
+    data: PreparedAnalysisData,
+    dependent_variable: str,
+    main_independent_variable: str,
+    controls: list[str],
+):
+    """Fit the baseline and control-progression models."""
+
+    y = data.y
     model_results = []
-    for i in range(len(controls) +1):
-        current_controls = controls[:i]
-        x_columns = [main_independent_variable] + current_controls
+
+    for index in range(len(controls) + 1):
+        current_controls = controls[:index]
+
+        model_columns = list(
+            data.term_map[main_independent_variable]
+        )
+
         
-        X = df[x_columns]
-        X = sm.add_constant(X)
+        for control in current_controls:
+            model_columns.extend(data.term_map[control])
+
+        X = data.X[model_columns]
+        X = sm.add_constant(X, has_constant="add")
 
         model = sm.OLS(y, X).fit()
-        coefficient_interval = model.conf_int().loc[main_independent_variable]
+
+        coefficient_interval = model.conf_int().loc[
+            main_independent_variable
+        ]
+
+        formula_terms = [
+            main_independent_variable,
+            *current_controls,
+        ]
 
         model_results.append({
-            "model_name": f"Model {i+1}",
-            "formula": f"{dependent_variable} ~ " + " + ".join(x_columns),
+            "model_name": f"Model {index + 1}",
+            "formula": (
+                f"{dependent_variable} ~ "
+                + " + ".join(formula_terms)
+            ),
             "controls": current_controls,
-            "coefficient": clean_metric(model.params[main_independent_variable]),
-            "standard_error": clean_metric(model.bse[main_independent_variable]),
-            "t_value": clean_metric(model.tvalues[main_independent_variable]),
-            "p_value": clean_metric(model.pvalues[main_independent_variable]),
+            "coefficient": clean_metric(
+                model.params[main_independent_variable]
+            ),
+            "standard_error": clean_metric(
+                model.bse[main_independent_variable]
+            ),
+            "t_value": clean_metric(
+                model.tvalues[main_independent_variable]
+            ),
+            "p_value": clean_metric(
+                model.pvalues[main_independent_variable]
+            ),
             "ci_95": [
-                clean_metric(coefficient_interval[0]),
-                clean_metric(coefficient_interval[1]),
+                clean_metric(coefficient_interval.iloc[0]),
+                clean_metric(coefficient_interval.iloc[1]),
             ],
             "r_squared": clean_metric(model.rsquared),
-            "adjusted_r_squared": clean_metric(model.rsquared_adj),
+            "adjusted_r_squared": clean_metric(
+                model.rsquared_adj
+            ),
             "rmse": clean_metric(np.sqrt(model.mse_resid)),
             "f_statistic": clean_metric(model.fvalue),
             "f_p_value": clean_metric(model.f_pvalue),
             "n_observations": int(model.nobs),
             "df_residual": clean_metric(model.df_resid),
-            "condition_number": clean_metric(model.condition_number),
+            "condition_number": clean_metric(
+                model.condition_number
+            ),
         })
 
     return model_results
