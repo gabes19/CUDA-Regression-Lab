@@ -238,7 +238,7 @@ def export_latex(export_token):
     return send_file(
         zip_path,
         as_attachment=True,
-        download_name="cuda_regression_lab_latex.zip",
+        download_name="regressai_latex.zip",
         mimetype="application/zip",
     )
 
@@ -258,6 +258,6 @@ def export_pdf(export_token):
     return send_file(
         pdf_path,
         as_attachment=True,
-        download_name="cuda_regression_lab_report.pdf",
+        download_name="regressai_report.pdf",
         mimetype="application/pdf",
     )

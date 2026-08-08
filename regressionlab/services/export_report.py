@@ -210,7 +210,7 @@ def build_latex_document(payload):
 \begin{{document}}
 
 \begin{{center}}
-{{\Large CUDA Regression Lab Report}}\\
+{{\Large RegressAI Report}}\\
 \vspace{{0.25em}}
 {{\small Generated {latex_escape(payload["created_at"])}}}
 \end{{center}}
