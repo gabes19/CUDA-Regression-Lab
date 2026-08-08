@@ -102,26 +102,54 @@ def analyze():
     csv_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     df = pd.read_csv(csv_path)
 
-    prepared_data = prepare_analysis_data(
-        df=df,
-        dependent_variable=dependent_variable,
-        main_independent_variable=main_independent_variable,
-        controls=controls,
-    )
+    def render_configuration_error(message):
+        return (
+            render_template(
+                "configure.html",
+                filename=filename,
+                columns=parse_columns(csv_path),
+                error_message=message,
+                research_question=research_question,
+                selected_dependent_variable=dependent_variable,
+                selected_main_independent_variable=(
+                    main_independent_variable
+                ),
+                selected_controls=controls,
+                selected_bootstrap_iterations=bootstrap_iterations,
+            ),
+            400,
+        )
 
-    model_results = fit_models(
-        data=prepared_data,
-        dependent_variable=dependent_variable,
-        main_independent_variable=main_independent_variable,
-        controls=controls,
-    )
+    try:
+        bootstrap_iterations = int(bootstrap_iterations)
+    except (TypeError, ValueError):
+        return render_configuration_error(
+            "Bootstrap iterations must be a whole number."
+        )
 
-    bootstrap_iterations = int(bootstrap_iterations)
-    bootstrap_results = bootstrap_coefficient(
-        data=prepared_data,
-        main_independent_variable=main_independent_variable,
-        iterations=bootstrap_iterations,
-    )
+    try:
+        prepared_data = prepare_analysis_data(
+            df=df,
+            dependent_variable=dependent_variable,
+            main_independent_variable=main_independent_variable,
+            controls=controls,
+        )
+
+        model_results = fit_models(
+            data=prepared_data,
+            dependent_variable=dependent_variable,
+            main_independent_variable=main_independent_variable,
+            controls=controls,
+        )
+
+        bootstrap_results = bootstrap_coefficient(
+            data=prepared_data,
+            main_independent_variable=main_independent_variable,
+            iterations=bootstrap_iterations,
+        )
+    except ValueError as error:
+        return render_configuration_error(str(error))
+
     baseline_coefficient = model_results[0]["coefficient"]
     final_coefficient = model_results[-1]["coefficient"]
     coefficient_change = final_coefficient - baseline_coefficient

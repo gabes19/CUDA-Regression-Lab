@@ -142,6 +142,29 @@
       align-items: start;
     }
 
+    .error-box {
+      border: 1px solid #ff7474;
+      background: rgba(130, 24, 24, 0.18);
+      color: var(--text);
+      margin-bottom: 28px;
+      padding: 16px 18px;
+    }
+
+    .error-box strong {
+      display: block;
+      color: #ffb3b3;
+      font-size: 14px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .error-box p {
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
     .analysis-form {
       display: grid;
       gap: 22px;
@@ -515,6 +538,13 @@
           </div>
         </div>
 
+        {% if error_message %}
+          <div class="error-box" role="alert" aria-live="assertive">
+            <strong>Analysis could not run</strong>
+            <p>{{ error_message }} Review your selections and try again.</p>
+          </div>
+        {% endif %}
+
         <div class="content-grid">
           <form class="analysis-form" action="/analyze" method="post">
             <input type="hidden" name="filename" value="{{ filename }}">
@@ -526,7 +556,7 @@
                 name="research_question"
                 placeholder="Does education predict wages after controlling for experience and gender?"
                 required
-              ></textarea>
+              >{{ research_question|default("") }}</textarea>
               <p class="hint">Write the plain-English question this regression should stress-test.</p>
             </div>
 
@@ -536,7 +566,10 @@
                 <select id="dependent_variable" name="dependent_variable" required>
                   <option value="">Select column</option>
                   {% for column in columns %}
-                    <option value="{{ column.name }}">{{ column.name }}</option>
+                    <option
+                      value="{{ column.name }}"
+                      {% if selected_dependent_variable == column.name %}selected{% endif %}
+                    >{{ column.name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -546,7 +579,10 @@
                 <select id="main_independent_variable" name="main_independent_variable" required>
                   <option value="">Select column</option>
                   {% for column in columns %}
-                    <option value="{{ column.name }}">{{ column.name }}</option>
+                    <option
+                      value="{{ column.name }}"
+                      {% if selected_main_independent_variable == column.name %}selected{% endif %}
+                    >{{ column.name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -559,7 +595,12 @@
               <div class="controls-grid">
                 {% for column in columns %}
                   <label class="control-option">
-                    <input type="checkbox" name="controls" value="{{ column.name }}">
+                    <input
+                      type="checkbox"
+                      name="controls"
+                      value="{{ column.name }}"
+                      {% if column.name in selected_controls|default([]) %}checked{% endif %}
+                    >
                     <span>{{ column.name }}</span>
                   </label>
                 {% endfor %}
@@ -574,7 +615,7 @@
                 type="number"
                 min="100"
                 step="100"
-                value="500"
+                value="{{ selected_bootstrap_iterations|default(500, true) }}"
               >
               <p class="hint">Start small while developing. Larger bootstrap jobs can move to GPU later.</p>
             </div>
